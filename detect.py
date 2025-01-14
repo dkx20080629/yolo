@@ -101,4 +101,4 @@ class Nano:
 
 
 if __name__ == "__main__":
-    Detect("frc2025-3_ncnn_model", datastream=True, conf=0.7, confident_stander=0.8).stream(camera=0, gui=True)
+    Detect("trash_ncnn_model", datastream=True, conf=0.7, confident_stander=0.8).stream(camera=0, gui=True)
