@@ -2,7 +2,6 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 from math import ceil
-from save_image import ImageSaver
 
 
 class Detect:
@@ -65,14 +64,7 @@ class Detect:
                     conf = box.conf[0].item()  # Confidence of the current detection
                     class_id = int(box.cls)
 
-                    # Check if confidence meets the threshold and save the image accordingly
-                    if conf >= self.confident_stander:
-                        # Save high-confidence image with YOLO label
-                        self.image_saver.save_image_with_label(img, confidence=conf, bbox=(x1, y1, x2, y2), class_id=class_id)
-                    else:
-                        # Save low-confidence image in a separate folder
-                        self.image_saver.save_low_conf_image(img, confidence=conf)
-
+                    
                     # Draw bounding box
                     if i == nearest_idx:
                         if (resolution[1] / 2 + 10) >= box_centers[i] >= (resolution[1] / 2 - 10):  # if nearest detected and centered
@@ -101,4 +93,4 @@ class Nano:
 
 
 if __name__ == "__main__":
-    Detect("trash_ncnn_model", datastream=True, conf=0.7, confident_stander=0.8).stream(camera=0, gui=True)
+    Detect("FRC_ncnn_model", datastream=True, conf=0.7).stream(camera=0, gui=True)
