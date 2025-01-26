@@ -2,19 +2,15 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 from math import ceil
-from save_image import ImageSaver
-
 
 class Detect:
-    def __init__(self, model: str = "frc2025-3_ncnn_model", conf: float = 0.8, datastream: bool = False, confident_stander: float = 0.7) -> None:
+    def __init__(self, model: str = "trash_ncnn_model", conf: float = 0.8, datastream: bool = False) -> None:
         '''
         init detection
         '''
         self.conf = conf
-        self.confident_stander = confident_stander  # Confidence threshold
         self.model = YOLO(model)
         self.ClassInt: list[int] = [i for i in range(len(self.model.names))]
-        self.image_saver = ImageSaver()  # Initialize the ImageSaver class
 
     def __CamInit__(self, cam_id: int, resolution: tuple[int, int] = (480, 640)):
         '''
@@ -55,9 +51,9 @@ class Detect:
 
                 # Vectorized calculation of distances between box centers and image center
                 boxes = res.boxes
-                box_centers = (boxes.xyxy[:, 0] + boxes.xyxy[:, 2]) / 2  # Calculate box centers
-                distances = np.abs(box_centers.cpu().numpy() - resolution[1] / 2)  # Move to CPU and convert to NumPy
-                nearest_idx = np.argmin(distances)  # Find the index of the nearest box
+                box_centers = (boxes.xyxy[:, 0] + boxes.xyxy[:, 2]) / 2
+                distances = np.abs(box_centers - resolution[1] / 2)
+                nearest_idx = np.argmax(distances.cpu().numpy())
 
                 # Draw rectangles around detected objects
                 for i, box in enumerate(boxes):
@@ -65,17 +61,10 @@ class Detect:
                     conf = box.conf[0].item()  # Confidence of the current detection
                     class_id = int(box.cls)
 
-                    # Check if confidence meets the threshold and save the image accordingly
-                    '''if conf >= self.confident_stander:
-                        # Save high-confidence image with YOLO label
-                        self.image_saver.save_image_with_label(img, confidence=conf, bbox=(x1, y1, x2, y2), class_id=class_id)
-                    else:
-                        # Save low-confidence image in a separate folder
-                        self.image_saver.save_low_conf_image(img, confidence=conf, class_id=class_id)'''
 
                     # Draw bounding box
                     if i == nearest_idx:
-                        if (resolution[1] / 2 + 10) >= box_centers[i].cpu().numpy() >= (resolution[1] / 2 - 10):  # if nearest detected and centered
+                        if (resolution[1] / 2 + 10) >= box_centers[i] >= (resolution[1] / 2 - 10):  # if nearest detected and centered
                             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 3)
                         else:  # if nearest detected but not centered
                             cv2.rectangle(img, (x1, y1), (x2, y2), (255, 255, 0), 3)
@@ -101,4 +90,4 @@ class Nano:
 
 
 if __name__ == "__main__":
-    Detect("trashfinal.pt", datastream=True, conf=0.7, confident_stander=0.9).stream(camera=0, gui=True)
+    Detect("trash_ncnn_model", datastream=True, conf=0.7).stream(camera=0, gui=True)
