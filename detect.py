@@ -2,6 +2,7 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 from math import ceil
+from save_image import ImageSaver
 
 
 class Detect:
@@ -54,9 +55,9 @@ class Detect:
 
                 # Vectorized calculation of distances between box centers and image center
                 boxes = res.boxes
-                box_centers = (boxes.xyxy[:, 0] + boxes.xyxy[:, 2]) / 2
-                distances = np.abs(box_centers - resolution[1] / 2)
-                nearest_idx = np.argmax(distances.cpu().numpy())
+                box_centers = (boxes.xyxy[:, 0] + boxes.xyxy[:, 2]) / 2  # Calculate box centers
+                distances = np.abs(box_centers.cpu().numpy() - resolution[1] / 2)  # Move to CPU and convert to NumPy
+                nearest_idx = np.argmin(distances)  # Find the index of the nearest box
 
                 # Draw rectangles around detected objects
                 for i, box in enumerate(boxes):
@@ -64,10 +65,17 @@ class Detect:
                     conf = box.conf[0].item()  # Confidence of the current detection
                     class_id = int(box.cls)
 
-                    
+                    # Check if confidence meets the threshold and save the image accordingly
+                    '''if conf >= self.confident_stander:
+                        # Save high-confidence image with YOLO label
+                        self.image_saver.save_image_with_label(img, confidence=conf, bbox=(x1, y1, x2, y2), class_id=class_id)
+                    else:
+                        # Save low-confidence image in a separate folder
+                        self.image_saver.save_low_conf_image(img, confidence=conf, class_id=class_id)'''
+
                     # Draw bounding box
                     if i == nearest_idx:
-                        if (resolution[1] / 2 + 10) >= box_centers[i] >= (resolution[1] / 2 - 10):  # if nearest detected and centered
+                        if (resolution[1] / 2 + 10) >= box_centers[i].cpu().numpy() >= (resolution[1] / 2 - 10):  # if nearest detected and centered
                             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 3)
                         else:  # if nearest detected but not centered
                             cv2.rectangle(img, (x1, y1), (x2, y2), (255, 255, 0), 3)
@@ -93,4 +101,4 @@ class Nano:
 
 
 if __name__ == "__main__":
-    Detect("FRC_ncnn_model", datastream=True, conf=0.7).stream(camera=0, gui=True)
+    Detect("trashfinal.pt", datastream=True, conf=0.7, confident_stander=0.9).stream(camera=0, gui=True)
