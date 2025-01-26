@@ -83,11 +83,9 @@ class Detect:
                 break
         cv2.destroyAllWindows()
 
-
 class Nano:
     def __init__(self):
         pass
-
 
 if __name__ == "__main__":
     Detect("trash_ncnn_model", datastream=True, conf=0.7).stream(camera=0, gui=True)
